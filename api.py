@@ -8,12 +8,17 @@
 
 import requests
 from pathlib import Path
+import argparse
+from datetime import datetime, timedelta, timezone
+import json
+import time
 
 class Geapi:
 
 	def __init__(self):
 	  self.endpoint = "https://prices.runescape.wiki/api/v1/osrs"
 	  self.mappingCachePath = "./mapping.json"
+	  self.itemMapping = None
 
 	# sets up things like session and the user agent
 	def setup(self):
@@ -41,19 +46,44 @@ class Geapi:
 
 			print(res.text)
 
-	def mapping(self):
-
+	def saveMapping(self):
 		reqUrl = self.endpoint + "/mapping"
-
 		res = self.reqSession.get(reqUrl)
+		res.raise_for_status()
 
-		print(res.json)
-	
+		loadedJson = res.json()
+
+		mappedResult = {
+			"retrieved_at": int(time.time()),  # UTC unix seconds
+			"items": loadedJson
+		}
+
+		with open(self.mappingCachePath, "w", encoding="utf-8") as f:
+			json.dump(mappedResult, f, ensure_ascii=False)
+
+	def loadMapping(self):
+    	# Load existing cache
+		with open(self.mappingCachePath, "r", encoding="utf-8") as f:
+			self.itemMapping = json.load(f)
+
+		TTL_SECONDS = 24 * 60 * 60
+		retrieved_time = self.itemMapping["retrieved_at"]
+		now = int(time.time())
+
+		is_stale = (now - retrieved_time) >= TTL_SECONDS
+
+		if is_stale:
+			# Refresh once
+			self.saveMapping()
+
+			# Reload once
+			with open(self.mappingCachePath, "r", encoding="utf-8") as f:
+				self.itemMapping = json.load(f)   
 
 if __name__ == '__main__':
 
 	geapi = Geapi()
 	geapi.setup()
-	geapi.mapping()
+	geapi.loadMapping()
 
 	
