@@ -11,10 +11,7 @@ import requests
 class Geapi:
 
 	def __init__(self):
-	  print("Hello from Geapi")
-	  self.endpoint = "prices.runescape.wiki/api/v1/osrs"
-	  print("Endpoint: ", self.endpoint)
-	  self.testItemId = "892" # rune arrow
+	  self.endpoint = "https://prices.runescape.wiki/api/v1/osrs"
 
 	# sets up things like session and the user agent
 	def setup(self):
@@ -28,18 +25,25 @@ class Geapi:
 			}
 		)
 
-		print(self.reqSession.headers)
-
 	def latest(self, itemId=None):
 
-		pass
-		#res = self.reqSession.get(self.endpoint + "/latest"
+		reqUrl = self.endpoint + "/latest"
 
+		params = None
+
+		if itemId:
+
+			params = {"id": itemId}
+		
+			res = self.reqSession.get(reqUrl, params = params)
+
+			print(res.text)
 	
 
 if __name__ == '__main__':
 
 	geapi = Geapi()
 	geapi.setup()
+	geapi.latest("892")
 
 	
