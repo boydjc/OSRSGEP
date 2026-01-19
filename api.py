@@ -16,14 +16,21 @@ class Geapi:
 	  print("Endpoint: ", self.endpoint)
 	  self.testItemId = "892" # rune arrow
 
-	# sets up things like user agent
-	# docs say that they want a user agent or they will block requests
+	# sets up things like session and the user agent
 	def setup(self):
-		pass
+		self.reqSession = requests.Session()
+
+		# set up User Agent
+		self.reqSession.headers.update(
+			{
+				"User-Agent": "OSRS GE Market Making/Price arbitrage script - Email: boyd.jc.github@gmail.com"
+			}
+		)
 	
 
 if __name__ == '__main__':
 
 	geapi = Geapi()
+	geapi.setup()
 
 	
