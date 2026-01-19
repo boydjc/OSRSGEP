@@ -7,11 +7,13 @@
 '''
 
 import requests
+from pathlib import Path
 
 class Geapi:
 
 	def __init__(self):
 	  self.endpoint = "https://prices.runescape.wiki/api/v1/osrs"
+	  self.mappingCachePath = "./mapping.json"
 
 	# sets up things like session and the user agent
 	def setup(self):
@@ -38,12 +40,20 @@ class Geapi:
 			res = self.reqSession.get(reqUrl, params = params)
 
 			print(res.text)
+
+	def mapping(self):
+
+		reqUrl = self.endpoint + "/mapping"
+
+		res = self.reqSession.get(reqUrl)
+
+		print(res.json)
 	
 
 if __name__ == '__main__':
 
 	geapi = Geapi()
 	geapi.setup()
-	geapi.latest("892")
+	geapi.mapping()
 
 	
