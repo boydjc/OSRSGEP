@@ -1,5 +1,5 @@
 '''
-	Bot for accessing osrs api
+	data script for accessing osrs api
 
 	user docs say that they want user agent set properly or they will block
 
@@ -131,6 +131,12 @@ class Geapi:
 	
 	def searchLatestSnapshot(self, itemId):
 		return self.latestSnapshot["data"].get(str(itemId))
+	
+	def getLatestSnapshot(self):
+		return self.latestSnapshot
+	
+	def getItemMapping(self):
+		return self.itemMapping
 	
 if __name__ == '__main__':
 
