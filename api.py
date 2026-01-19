@@ -8,7 +8,6 @@
 
 import requests
 from pathlib import Path
-import argparse
 from datetime import datetime, timedelta, timezone
 import json
 import time
@@ -21,6 +20,10 @@ class Geapi:
 		self.latestSnapshotPath = "./latest.json"
 		self.itemMapping = None
 		self.latestSnapshot = None
+
+		self.setup()
+		self.loadAllItemsLatest()
+		self.loadMapping()
 
 	# sets up things like session and the user agent
 	def setup(self):
