@@ -18,6 +18,7 @@ class Geapi:
 	def __init__(self):
 		self.endpoint = "https://prices.runescape.wiki/api/v1/osrs"
 		self.mappingCachePath = "./mapping.json"
+		self.latestSnapshot = "./latest.json"
 		self.itemMapping = None
 
 	# sets up things like session and the user agent
@@ -45,6 +46,25 @@ class Geapi:
 			res = self.reqSession.get(reqUrl, params = params)
 
 			print(res.text)
+
+	def saveAllItemsLatest(self):
+		
+		reqUrl = self.endpoint + "/latest"
+
+		res = self.reqSession.get(reqUrl)
+
+		res.raise_for_status()
+
+		loadedJson = res.json()
+
+		mappedResult = {
+			"retrieved_at": int(time.time()),  # UTC unix seconds
+			"items": loadedJson
+		}
+
+		with open(self.latestSnapshot, "w", encoding="utf-8") as f:
+			json.dump(mappedResult, f, ensure_ascii=False)
+
 
 	def saveMapping(self):
 		reqUrl = self.endpoint + "/mapping"
@@ -92,6 +112,7 @@ if __name__ == '__main__':
 	geapi = Geapi()
 	geapi.setup()
 	geapi.loadMapping()
-	print(geapi.searchMapping("892"))
+	geapi.saveAllItemsLatest()
+	#print(geapi.searchMapping("892"))
 
 	
