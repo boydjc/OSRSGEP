@@ -23,9 +23,18 @@ class Geapi:
 		# set up User Agent
 		self.reqSession.headers.update(
 			{
-				"User-Agent": "OSRS GE Market Making/Price arbitrage script - Email: boyd.jc.github@gmail.com"
+				"User-Agent": "OSRS GE Market Making/Price arbitrage script - Email: boyd.jc.github@gmail.com",
+				"From": "boyd.jc.github@gmail.com"
 			}
 		)
+
+		print(self.reqSession.headers)
+
+	def latest(self, itemId=None):
+
+		pass
+		#res = self.reqSession.get(self.endpoint + "/latest"
+
 	
 
 if __name__ == '__main__':
