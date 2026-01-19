@@ -16,9 +16,9 @@ import time
 class Geapi:
 
 	def __init__(self):
-	  self.endpoint = "https://prices.runescape.wiki/api/v1/osrs"
-	  self.mappingCachePath = "./mapping.json"
-	  self.itemMapping = None
+		self.endpoint = "https://prices.runescape.wiki/api/v1/osrs"
+		self.mappingCachePath = "./mapping.json"
+		self.itemMapping = None
 
 	# sets up things like session and the user agent
 	def setup(self):
@@ -80,10 +80,18 @@ class Geapi:
 			with open(self.mappingCachePath, "r", encoding="utf-8") as f:
 				self.itemMapping = json.load(f)   
 
+	def searchMapping(self, itemId):
+		itemId = int(itemId)
+		for item in self.itemMapping["items"]:
+			if item["id"] == itemId:
+				return item
+		return None
+	
 if __name__ == '__main__':
 
 	geapi = Geapi()
 	geapi.setup()
 	geapi.loadMapping()
+	print(geapi.searchMapping("892"))
 
 	
