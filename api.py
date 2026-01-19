@@ -18,8 +18,9 @@ class Geapi:
 	def __init__(self):
 		self.endpoint = "https://prices.runescape.wiki/api/v1/osrs"
 		self.mappingCachePath = "./mapping.json"
-		self.latestSnapshot = "./latest.json"
+		self.latestSnapshotPath = "./latest.json"
 		self.itemMapping = None
+		self.latestSnapshot = None
 
 	# sets up things like session and the user agent
 	def setup(self):
@@ -34,6 +35,7 @@ class Geapi:
 		)
 
 	def latest(self, itemId=None):
+		print("SENDING LATEST REQUEST")
 
 		reqUrl = self.endpoint + "/latest"
 
@@ -45,28 +47,45 @@ class Geapi:
 		
 			res = self.reqSession.get(reqUrl, params = params)
 
-			print(res.text)
+			return res
 
 	def saveAllItemsLatest(self):
-		
+		print("SENDING LATEST ALL REQUEST")
 		reqUrl = self.endpoint + "/latest"
-
+		
 		res = self.reqSession.get(reqUrl)
-
 		res.raise_for_status()
-
+	
 		loadedJson = res.json()
-
 		mappedResult = {
 			"retrieved_at": int(time.time()),  # UTC unix seconds
-			"items": loadedJson
+			"data": loadedJson["data"]
 		}
 
-		with open(self.latestSnapshot, "w", encoding="utf-8") as f:
+		with open(self.latestSnapshotPath, "w", encoding="utf-8") as f:
 			json.dump(mappedResult, f, ensure_ascii=False)
 
+	def loadAllItemsLatest(self):
+		# Load existing cache
+		with open(self.latestSnapshotPath, "r", encoding="utf-8") as f:
+			self.latestSnapshot = json.load(f)
+
+		TTL_SECONDS = 5 * 60
+		retrieved_time = self.latestSnapshot["retrieved_at"]
+		now = int(time.time())
+
+		is_stale = (now - retrieved_time) >= TTL_SECONDS
+
+		if is_stale:
+			# Refresh once
+			self.saveAllItemsLatest()
+
+			# Reload once
+			with open(self.latestSnapshotPath, "r", encoding="utf-8") as f:
+				self.latestSnapshot = json.load(f)   
 
 	def saveMapping(self):
+		print("SENDING MAPPING REQUEST")
 		reqUrl = self.endpoint + "/mapping"
 		res = self.reqSession.get(reqUrl)
 		res.raise_for_status()
@@ -107,12 +126,16 @@ class Geapi:
 				return item
 		return None
 	
+	def searchLatestSnapshot(self, itemId):
+		return self.latestSnapshot["data"].get(str(itemId))
+	
 if __name__ == '__main__':
 
 	geapi = Geapi()
 	geapi.setup()
 	geapi.loadMapping()
-	geapi.saveAllItemsLatest()
-	#print(geapi.searchMapping("892"))
+	geapi.loadAllItemsLatest()
+	print(geapi.searchMapping("892"))
+	print(geapi.searchLatestSnapshot("892"))
 
 	
