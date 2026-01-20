@@ -18,6 +18,10 @@ class Geapi:
 		self.endpoint = "https://prices.runescape.wiki/api/v1/osrs"
 		self.mappingCachePath = "./mapping.json"
 		self.latestSnapshotPath = "./latest.json"
+		self.fiveMinAveSnapshotPath = "./fiveMinAve.json"
+		self.oneHourAveSnapshotPath = "./oneHourAve.json"
+		self.sixHourAveSnapshotPath = "./sixHourAve.json"
+		self.oneDayAveSnapshotPath = "./oneDayAve.json"
 		self.itemMapping = None
 		self.latestSnapshot = None
 
@@ -120,22 +124,14 @@ class Geapi:
 
 			# Reload once
 			with open(self.mappingCachePath, "r", encoding="utf-8") as f:
-				self.itemMapping = json.load(f)   
-
-	def searchMapping(self, itemId):
-		itemId = int(itemId)
-		for item in self.itemMapping["items"]:
-			if item["id"] == itemId:
-				return item
-		return None
-	
-	def searchLatestSnapshot(self, itemId):
-		return self.latestSnapshot["data"].get(str(itemId))
+				self.itemMapping = json.load(f)
 	
 	def getLatestSnapshot(self):
+		#TODO: check if stale and if so get a new one
 		return self.latestSnapshot
 	
 	def getItemMapping(self):
+		#TODO: check if stale and if so get a new one
 		return self.itemMapping
 	
 if __name__ == '__main__':
