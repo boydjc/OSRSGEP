@@ -24,10 +24,14 @@ class Geapi:
 		self.oneDayAveSnapshotPath = "./oneDayAve.json"
 		self.itemMapping = None
 		self.latestSnapshot = None
+		self.fiveMinAveSnapshot = None
+		self.oneHourAveSnapshot = None
+		self.sixHourAveSnapshot = None
+		self.oneDayAveSnapshot = None
 
 		self.setup()
-		self.loadAllItemsLatest()
-		self.loadMapping()
+		# self.loadAllItemsLatest()
+		# self.loadMapping()
 
 	# sets up things like session and the user agent
 	def setup(self):
@@ -89,7 +93,43 @@ class Geapi:
 
 			# Reload once
 			with open(self.latestSnapshotPath, "r", encoding="utf-8") as f:
-				self.latestSnapshot = json.load(f)   
+				self.latestSnapshot = json.load(f) 
+
+	def saveFiveMinAve(self):
+		print("SENDING FIVE MIN AVE REQUEST")
+		reqUrl = self.endpoint + "/5m"
+		res = self.reqSession.get(reqUrl)
+		res.raise_for_status()
+
+		loadedJson = res.json()
+
+		mappedResult = {
+			"retrieved_at": int(time.time()), # UTC unix seconds
+			"data": loadedJson["data"]
+		}
+
+		with open(self.fiveMinAveSnapshotPath, "w", encoding="utf-8") as f:
+			json.dump(mappedResult, f, ensure_ascii=False)
+
+	def loadFiveMinAve(self):
+
+		# Load existing cache
+		with open(self.fiveMinAveSnapshotPath, "r", encoding="utf-8") as f:
+			self.fiveMinAveSnapshot = json.load(f)
+
+		TTL_SECONDS = 5 * 60 # 5 minutes
+		retrieved_time = self.itemMapping["retrieved_at"]
+		now = int(time.time())
+
+		is_stale = (now - retrieved_time) >= TTL_SECONDS
+
+		if is_stale:
+			# Refresh once
+			self.saveFiveMinAve()
+
+			# Reload once
+			with open(self.fiveMinAveSnapshotPath, "r", encoding="utf-8") as f:
+				self.fiveMinAveSnapshot = json.load(f)
 
 	def saveMapping(self):
 		print("SENDING MAPPING REQUEST")
@@ -138,9 +178,10 @@ if __name__ == '__main__':
 
 	geapi = Geapi()
 	geapi.setup()
-	geapi.loadMapping()
-	geapi.loadAllItemsLatest()
-	print(geapi.searchMapping("892"))
-	print(geapi.searchLatestSnapshot("892"))
+	geapi.saveFiveMinAve()
+	# geapi.loadMapping()
+	# geapi.loadAllItemsLatest()
+	# print(geapi.searchMapping("892"))
+	# print(geapi.searchLatestSnapshot("892"))
 
 	
