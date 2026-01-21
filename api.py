@@ -16,12 +16,12 @@ class Geapi:
 
 	def __init__(self):
 		self.endpoint = "https://prices.runescape.wiki/api/v1/osrs"
-		self.mappingCachePath = "./mapping.json"
-		self.latestSnapshotPath = "./latest.json"
-		self.fiveMinAveSnapshotPath = "./fiveMinAve.json"
-		self.oneHourAveSnapshotPath = "./oneHourAve.json"
-		self.sixHourAveSnapshotPath = "./sixHourAve.json"
-		self.oneDayAveSnapshotPath = "./oneDayAve.json"
+		self.mappingCachePath = "./data/mapping.json"
+		self.latestSnapshotPath = "./data/latest.json"
+		self.fiveMinAveSnapshotPath = "./data/fiveMinAve.json"
+		self.oneHourAveSnapshotPath = "./data/oneHourAve.json"
+		self.sixHourAveSnapshotPath = "./data/sixHourAve.json"
+		self.oneDayAveSnapshotPath = "./data/oneDayAve.json"
 		self.itemMapping = None
 		self.latestSnapshot = None
 		self.fiveMinAveSnapshot = None
@@ -71,12 +71,14 @@ class Geapi:
 			"data": loadedJson["data"]
 		}
 
+		Path(self.latestSnapshotPath).parent.mkdir(parents=True, exist_ok=True)
+
 		with open(self.latestSnapshotPath, "w", encoding="utf-8") as f:
 			json.dump(mappedResult, f, ensure_ascii=False)
 
 	def loadAllItemsLatest(self):
 
-		if Path(self.latestSnapshotPath).exists:
+		if Path(self.latestSnapshotPath).exists():
 
 			# Load existing cache
 			with open(self.latestSnapshotPath, "r", encoding="utf-8") as f:
@@ -116,12 +118,14 @@ class Geapi:
 			"data": loadedJson["data"]
 		}
 
+		Path(self.fiveMinAveSnapshotPath).parent.mkdir(parents=True, exist_ok=True)
+
 		with open(self.fiveMinAveSnapshotPath, "w", encoding="utf-8") as f:
 			json.dump(mappedResult, f, ensure_ascii=False)
 
 	def loadFiveMinAve(self):
 
-		if Path(self.fiveMinAveSnapshotPath).exists:
+		if Path(self.fiveMinAveSnapshotPath).exists():
 
 			# Load existing cache
 			with open(self.fiveMinAveSnapshotPath, "r", encoding="utf-8") as f:
@@ -147,6 +151,144 @@ class Geapi:
 			with open(self.fiveMinAveSnapshotPath, "r", encoding="utf-8") as f:
 				self.fiveMinAveSnapshot = json.load(f)
 
+	def saveOneHourAve(self):
+		print("SENDING ONE HOUR AVE REQUEST")
+		reqUrl = self.endpoint + "/1h"
+		res = self.reqSession.get(reqUrl)
+		res.raise_for_status()
+
+		loadedJson = res.json()
+
+		mappedResult = {
+			"retrieved_at": int(time.time()), # UTC unix seconds
+			"data": loadedJson["data"]
+		}
+
+		Path(self.oneHourAveSnapshotPath).parent.mkdir(parents=True, exist_ok=True)
+
+		with open(self.oneHourAveSnapshotPath, "w", encoding="utf-8") as f:
+			json.dump(mappedResult, f, ensure_ascii=False)
+
+	def loadOneHourAve(self):
+
+		if Path(self.oneHourAveSnapshotPath).exists():
+
+			# Load existing cache
+			with open(self.oneHourAveSnapshotPath, "r", encoding="utf-8") as f:
+				self.oneHourAveSnapshot = json.load(f)
+
+			TTL_SECONDS = 60 * 60 # 1 hour 
+			retrieved_time = self.itemMapping["retrieved_at"]
+			now = int(time.time())
+
+			is_stale = (now - retrieved_time) >= TTL_SECONDS
+
+			if is_stale:
+				# Refresh once
+				self.saveOneHourAve()
+
+				# Reload once
+				with open(self.oneHourAveSnapshotPath, "r", encoding="utf-8") as f:
+					self.oneHourAveSnapshot = json.load(f)
+		else:
+			self.saveOneHourAve()
+
+			# Reload once
+			with open(self.oneHourAveSnapshotPath, "r", encoding="utf-8") as f:
+				self.oneHourAveSnapshot = json.load(f)
+
+	def saveSixHourAve(self):
+		print("SENDING SIX HOUR AVE REQUEST")
+		reqUrl = self.endpoint + "/6h"
+		res = self.reqSession.get(reqUrl)
+		res.raise_for_status()
+
+		loadedJson = res.json()
+
+		mappedResult = {
+			"retrieved_at": int(time.time()), # UTC unix seconds
+			"data": loadedJson["data"]
+		}
+
+		Path(self.sixHourAveSnapshotPath).parent.mkdir(parents=True, exist_ok=True)
+
+		with open(self.sixHourAveSnapshotPath, "w", encoding="utf-8") as f:
+			json.dump(mappedResult, f, ensure_ascii=False)
+
+	def loadSixHourAve(self):
+
+		if Path(self.sixHourAveSnapshotPath).exists():
+
+			# Load existing cache
+			with open(self.sixHourAveSnapshotPath, "r", encoding="utf-8") as f:
+				self.sixHourAveSnapshot = json.load(f)
+
+			TTL_SECONDS = 6 * 60 * 60 # 6 hour 
+			retrieved_time = self.itemMapping["retrieved_at"]
+			now = int(time.time())
+
+			is_stale = (now - retrieved_time) >= TTL_SECONDS
+
+			if is_stale:
+				# Refresh once
+				self.saveSixHourAve()
+
+				# Reload once
+				with open(self.sixHourAveSnapshotPath, "r", encoding="utf-8") as f:
+					self.sixHourAveSnapshot = json.load(f)
+		else:
+			self.saveSixHourAve()
+
+			# Reload once
+			with open(self.sixHourAveSnapshotPath, "r", encoding="utf-8") as f:
+				self.sixHourAveSnapshot = json.load(f)
+
+	def saveOneDayAve(self):
+		print("SENDING 24 HOUR AVE REQUEST")
+		reqUrl = self.endpoint + "/24h"
+		res = self.reqSession.get(reqUrl)
+		res.raise_for_status()
+
+		loadedJson = res.json()
+
+		mappedResult = {
+			"retrieved_at": int(time.time()), # UTC unix seconds
+			"data": loadedJson["data"]
+		}
+
+		Path(self.oneDayAveSnapshotPath).parent.mkdir(parents=True, exist_ok=True)
+
+		with open(self.oneDayAveSnapshotPath, "w", encoding="utf-8") as f:
+			json.dump(mappedResult, f, ensure_ascii=False)
+
+	def loadOneDayAve(self):
+
+		if Path(self.oneDayAveSnapshotPath).exists():
+
+			# Load existing cache
+			with open(self.oneDayAveSnapshotPath, "r", encoding="utf-8") as f:
+				self.oneDayAveSnapshot = json.load(f)
+
+			TTL_SECONDS = 24 * 60 * 60 # 6 hour 
+			retrieved_time = self.itemMapping["retrieved_at"]
+			now = int(time.time())
+
+			is_stale = (now - retrieved_time) >= TTL_SECONDS
+
+			if is_stale:
+				# Refresh once
+				self.oneDayAveSnapshot()
+
+				# Reload once
+				with open(self.oneDayAveSnapshotPath, "r", encoding="utf-8") as f:
+					self.oneDayAveSnapshot = json.load(f)
+		else:
+			self.saveOneDayAve()
+
+			# Reload once
+			with open(self.oneDayAveSnapshotPath, "r", encoding="utf-8") as f:
+				self.oneDayAveSnapshot = json.load(f)
+
 
 	def saveMapping(self):
 		print("SENDING MAPPING REQUEST")
@@ -161,12 +303,14 @@ class Geapi:
 			"items": loadedJson
 		}
 
+		Path(self.mappingCachePath).parent.mkdir(parents=True, exist_ok=True)
+
 		with open(self.mappingCachePath, "w", encoding="utf-8") as f:
 			json.dump(mappedResult, f, ensure_ascii=False)
 
 	def loadMapping(self):
 
-		if Path(self.mappingCachePath).exists:
+		if Path(self.mappingCachePath).exists():
 
 			# Load existing cache
 			with open(self.mappingCachePath, "r", encoding="utf-8") as f:
@@ -195,15 +339,37 @@ class Geapi:
 
 	
 	def getLatestSnapshot(self):
-		#TODO: check if stale and if so get a new one
+		self.loadAllItemsLatest()
 		return self.latestSnapshot
 	
 	def getItemMapping(self):
-		#TODO: check if stale and if so get a new one
+		self.loadMapping()
 		return self.itemMapping
+	
+	def getFiveMinAveSnapshot(self):
+		self.loadFiveMinAve()
+		return self.fiveMinAveSnapshot
+	
+	def getOneHourAveSnapshot(self):
+		self.loadOneHourAve()
+		return self.oneHourAveSnapshot
+	
+	def getSixHourAveSnapshot(self):
+		self.loadSixHourAve()
+		return self.sixHourAveSnapshot
+	
+	def getOneDayAveSnapshot(self):
+		self.loadOneDayAve()
+		return self.oneDayAveSnapshot
 	
 if __name__ == '__main__':
 
 	geapi = Geapi()
 	geapi.setup()
+	geapi.getLatestSnapshot()
+	geapi.getItemMapping()
+	geapi.getFiveMinAveSnapshot()
+	geapi.getOneHourAveSnapshot()
+	geapi.getSixHourAveSnapshot()
+	geapi.getOneDayAveSnapshot()
 	
