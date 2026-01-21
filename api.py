@@ -29,6 +29,9 @@ class Geapi:
 		self.sixHourAveSnapshot = None
 		self.oneDayAveSnapshot = None
 
+		self.timeSinceLastRequest = None
+		self.secondsBetweenRequest = 5 # 5 second minimum delay between requests
+
 		self.setup()
 
 	# sets up things like session and the user agent
@@ -53,8 +56,15 @@ class Geapi:
 		if itemId:
 
 			params = {"id": itemId}
+
+			now = int(time.time())
+
+			if self.timeSinceLastRequest and (now - self.timeSinceLastRequest) < self.secondsBetweenRequest:
+				time.sleep(self.secondsBetweenRequest - (now - self.timeSinceLastRequest))
 		
 			res = self.reqSession.get(reqUrl, params = params)
+
+			self.timeSinceLastRequest = int(time.time())
 
 			return res
 
@@ -62,7 +72,14 @@ class Geapi:
 		print("SENDING LATEST ALL REQUEST")
 		reqUrl = self.endpoint + "/latest"
 		
+		now = int(time.time())
+
+		if self.timeSinceLastRequest and (now - self.timeSinceLastRequest) < self.secondsBetweenRequest:
+			time.sleep(self.secondsBetweenRequest - (now - self.timeSinceLastRequest))
+	
 		res = self.reqSession.get(reqUrl)
+
+		self.timeSinceLastRequest = int(time.time())
 		res.raise_for_status()
 	
 		loadedJson = res.json()
@@ -108,7 +125,14 @@ class Geapi:
 	def saveFiveMinAve(self):
 		print("SENDING FIVE MIN AVE REQUEST")
 		reqUrl = self.endpoint + "/5m"
+		now = int(time.time())
+
+		if self.timeSinceLastRequest and (now - self.timeSinceLastRequest) < self.secondsBetweenRequest:
+			time.sleep(self.secondsBetweenRequest - (now - self.timeSinceLastRequest))
+		
 		res = self.reqSession.get(reqUrl)
+
+		self.timeSinceLastRequest = int(time.time())
 		res.raise_for_status()
 
 		loadedJson = res.json()
@@ -154,7 +178,14 @@ class Geapi:
 	def saveOneHourAve(self):
 		print("SENDING ONE HOUR AVE REQUEST")
 		reqUrl = self.endpoint + "/1h"
+		now = int(time.time())
+
+		if self.timeSinceLastRequest and (now - self.timeSinceLastRequest) < self.secondsBetweenRequest:
+			time.sleep(self.secondsBetweenRequest - (now - self.timeSinceLastRequest))
+		
 		res = self.reqSession.get(reqUrl)
+
+		self.timeSinceLastRequest = int(time.time())
 		res.raise_for_status()
 
 		loadedJson = res.json()
@@ -200,7 +231,14 @@ class Geapi:
 	def saveSixHourAve(self):
 		print("SENDING SIX HOUR AVE REQUEST")
 		reqUrl = self.endpoint + "/6h"
+		now = int(time.time())
+
+		if self.timeSinceLastRequest and (now - self.timeSinceLastRequest) < self.secondsBetweenRequest:
+			time.sleep(self.secondsBetweenRequest - (now - self.timeSinceLastRequest))
+		
 		res = self.reqSession.get(reqUrl)
+
+		self.timeSinceLastRequest = int(time.time())
 		res.raise_for_status()
 
 		loadedJson = res.json()
@@ -246,7 +284,14 @@ class Geapi:
 	def saveOneDayAve(self):
 		print("SENDING 24 HOUR AVE REQUEST")
 		reqUrl = self.endpoint + "/24h"
+		now = int(time.time())
+
+		if self.timeSinceLastRequest and (now - self.timeSinceLastRequest) < self.secondsBetweenRequest:
+			time.sleep(self.secondsBetweenRequest - (now - self.timeSinceLastRequest))
+		
 		res = self.reqSession.get(reqUrl)
+
+		self.timeSinceLastRequest = int(time.time())
 		res.raise_for_status()
 
 		loadedJson = res.json()
@@ -293,7 +338,14 @@ class Geapi:
 	def saveMapping(self):
 		print("SENDING MAPPING REQUEST")
 		reqUrl = self.endpoint + "/mapping"
+		now = int(time.time())
+
+		if self.timeSinceLastRequest and (now - self.timeSinceLastRequest) < self.secondsBetweenRequest:
+			time.sleep(self.secondsBetweenRequest - (now - self.timeSinceLastRequest))
+		
 		res = self.reqSession.get(reqUrl)
+
+		self.timeSinceLastRequest = int(time.time())
 		res.raise_for_status()
 
 		loadedJson = res.json()
