@@ -30,8 +30,6 @@ class Geapi:
 		self.oneDayAveSnapshot = None
 
 		self.setup()
-		# self.loadAllItemsLatest()
-		# self.loadMapping()
 
 	# sets up things like session and the user agent
 	def setup(self):
@@ -77,23 +75,33 @@ class Geapi:
 			json.dump(mappedResult, f, ensure_ascii=False)
 
 	def loadAllItemsLatest(self):
-		# Load existing cache
-		with open(self.latestSnapshotPath, "r", encoding="utf-8") as f:
-			self.latestSnapshot = json.load(f)
 
-		TTL_SECONDS = 5 * 60
-		retrieved_time = self.latestSnapshot["retrieved_at"]
-		now = int(time.time())
+		if Path(self.latestSnapshotPath).exists:
 
-		is_stale = (now - retrieved_time) >= TTL_SECONDS
+			# Load existing cache
+			with open(self.latestSnapshotPath, "r", encoding="utf-8") as f:
+				self.latestSnapshot = json.load(f)
 
-		if is_stale:
-			# Refresh once
+			TTL_SECONDS = 5 * 60
+			retrieved_time = self.latestSnapshot["retrieved_at"]
+			now = int(time.time())
+
+			is_stale = (now - retrieved_time) >= TTL_SECONDS
+
+			if is_stale:
+				# Refresh once
+				self.saveAllItemsLatest()
+
+				# Reload once
+				with open(self.latestSnapshotPath, "r", encoding="utf-8") as f:
+					self.latestSnapshot = json.load(f) 
+		else:
 			self.saveAllItemsLatest()
 
 			# Reload once
 			with open(self.latestSnapshotPath, "r", encoding="utf-8") as f:
 				self.latestSnapshot = json.load(f) 
+
 
 	def saveFiveMinAve(self):
 		print("SENDING FIVE MIN AVE REQUEST")
@@ -113,23 +121,32 @@ class Geapi:
 
 	def loadFiveMinAve(self):
 
-		# Load existing cache
-		with open(self.fiveMinAveSnapshotPath, "r", encoding="utf-8") as f:
-			self.fiveMinAveSnapshot = json.load(f)
+		if Path(self.fiveMinAveSnapshotPath).exists:
 
-		TTL_SECONDS = 5 * 60 # 5 minutes
-		retrieved_time = self.itemMapping["retrieved_at"]
-		now = int(time.time())
+			# Load existing cache
+			with open(self.fiveMinAveSnapshotPath, "r", encoding="utf-8") as f:
+				self.fiveMinAveSnapshot = json.load(f)
 
-		is_stale = (now - retrieved_time) >= TTL_SECONDS
+			TTL_SECONDS = 5 * 60 # 5 minutes
+			retrieved_time = self.itemMapping["retrieved_at"]
+			now = int(time.time())
 
-		if is_stale:
-			# Refresh once
+			is_stale = (now - retrieved_time) >= TTL_SECONDS
+
+			if is_stale:
+				# Refresh once
+				self.saveFiveMinAve()
+
+				# Reload once
+				with open(self.fiveMinAveSnapshotPath, "r", encoding="utf-8") as f:
+					self.fiveMinAveSnapshot = json.load(f)
+		else:
 			self.saveFiveMinAve()
 
 			# Reload once
 			with open(self.fiveMinAveSnapshotPath, "r", encoding="utf-8") as f:
 				self.fiveMinAveSnapshot = json.load(f)
+
 
 	def saveMapping(self):
 		print("SENDING MAPPING REQUEST")
@@ -148,23 +165,34 @@ class Geapi:
 			json.dump(mappedResult, f, ensure_ascii=False)
 
 	def loadMapping(self):
-    	# Load existing cache
-		with open(self.mappingCachePath, "r", encoding="utf-8") as f:
-			self.itemMapping = json.load(f)
 
-		TTL_SECONDS = 24 * 60 * 60
-		retrieved_time = self.itemMapping["retrieved_at"]
-		now = int(time.time())
+		if Path(self.mappingCachePath).exists:
 
-		is_stale = (now - retrieved_time) >= TTL_SECONDS
+			# Load existing cache
+			with open(self.mappingCachePath, "r", encoding="utf-8") as f:
+				self.itemMapping = json.load(f)
 
-		if is_stale:
+			TTL_SECONDS = 24 * 60 * 60
+			retrieved_time = self.itemMapping["retrieved_at"]
+			now = int(time.time())
+
+			is_stale = (now - retrieved_time) >= TTL_SECONDS
+
+			if is_stale:
+				# Refresh once
+				self.saveMapping()
+
+				# Reload once
+				with open(self.mappingCachePath, "r", encoding="utf-8") as f:
+					self.itemMapping = json.load(f)
+		else:
 			# Refresh once
 			self.saveMapping()
 
 			# Reload once
 			with open(self.mappingCachePath, "r", encoding="utf-8") as f:
 				self.itemMapping = json.load(f)
+
 	
 	def getLatestSnapshot(self):
 		#TODO: check if stale and if so get a new one
@@ -178,10 +206,4 @@ if __name__ == '__main__':
 
 	geapi = Geapi()
 	geapi.setup()
-	geapi.saveFiveMinAve()
-	# geapi.loadMapping()
-	# geapi.loadAllItemsLatest()
-	# print(geapi.searchMapping("892"))
-	# print(geapi.searchLatestSnapshot("892"))
-
 	
