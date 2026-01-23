@@ -13,7 +13,6 @@ class GeController:
         data = latestSnapshot["data"]
 
         now = int(time.time())
-        MAX_AGE_SECONDS = 5 * 60  # 5 minutes
 
         GE_TAX_RATE = 0.02
 
@@ -39,10 +38,9 @@ class GeController:
             lowTime  = q.get("lowTime")
             if not isinstance(highTime, int) or not isinstance(lowTime, int):
                 continue
-            if (now - highTime) > MAX_AGE_SECONDS or (now - lowTime) > MAX_AGE_SECONDS:
-                continue
 
             # After-tax economics (assume you sell at low)
+            # this ensures only things that we would profit from AFTER being tax is shown
             tax = GE_TAX_RATE * low
             netProfit = spread - tax
             if netProfit <= 0:
@@ -56,25 +54,40 @@ class GeController:
             netSpreadPct = netProfit / mid
 
             # mapping lookup
-            itemDetails = self.geapi.searchMapping(itemId)
+            itemDetails = self.searchMapping(itemId)
+
+            # five minute average
+            fiveMinuteAverage = self.searchFiveMinuteAveSnapshot(itemId)
 
             lastTradeTime = max(highTime, lowTime)
 
-            rows.append({
-                "item_id": int(itemId),
-                "item_name": itemDetails.get("name"),
-                "item_limit": itemDetails.get("limit"),
-                "low": low,
-                "high": high,
-                "spreadPct": spreadPct,
-                "netProfit": netProfit,
-                "netSpreadPct": netSpreadPct,
-                "lastTradeReadable": datetime.fromtimestamp(lastTradeTime).strftime("%H:%M:%S"),
-                "lastTradeTime": lastTradeTime
-            })
+            if(fiveMinuteAverage):
+                fiveMinLowVol = None if "lowPriceVolume" not in fiveMinuteAverage.keys() else fiveMinuteAverage.get("lowPriceVolume")
+                fiveMinHighVol = None if "highPriceVolume" not in fiveMinuteAverage.keys() else fiveMinuteAverage.get("highPriceVolume")
+
+
+
+
+                fiveMinVol = None
+
+                if fiveMinLowVol and fiveMinHighVol:
+                    fiveMinVol = fiveMinLowVol + fiveMinHighVol
+
+                if fiveMinVol:
+                    rows.append({
+                        "item_id": int(itemId),
+                        "item_name": itemDetails.get("name"),
+                        "item_limit": itemDetails.get("limit"),
+                        "low": low,
+                        "vol (5m)": fiveMinVol,
+                        "high": high,
+                        "netSpreadPct": round(netSpreadPct, 2),
+                        "lastTradeReadable": datetime.fromtimestamp(lastTradeTime).strftime("%H:%M:%S"),
+                        "lastTradeTime": lastTradeTime
+                    })
 
         # Sort by after-tax percent edge, then recency
-        rows.sort(key=lambda r: (r["netSpreadPct"], r["lastTradeTime"]), reverse=True)
+        rows.sort(key=lambda r: (r["vol (5m)"], r["netSpreadPct"], r["lastTradeTime"],), reverse=True)
         return rows[:limit]
     
     def searchMapping(self, itemId):
@@ -92,6 +105,19 @@ class GeController:
         latestSnapshot = self.geapi.getLatestSnapshot()
 
         return latestSnapshot["data"].get(str(itemId))
+    
+    def searchFiveMinuteAveSnapshot(self, itemId):
+
+        fiveMinuteAveSnapshot = self.geapi.getFiveMinAveSnapshot()
+
+        return fiveMinuteAveSnapshot["data"].get(str(itemId))
+    
+    def searchOneHourAveSnapshot(self, itemId):
+
+        oneHourAveSnapshot = self.geapi.getOneHourAveSnapshot()
+
+        return oneHourAveSnapshot["data"].get(str(itemId))
+
 
 
 if __name__ == "__main__":
@@ -100,3 +126,4 @@ if __name__ == "__main__":
     widestSpreads = geController.findWidestSpreads()
     for item in widestSpreads:
         print(item)
+        print('---------------')
