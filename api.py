@@ -41,7 +41,7 @@ class Geapi:
 		# set up User Agent
 		self.reqSession.headers.update(
 			{
-				"User-Agent": "OSRS GE Market Making/Price arbitrage script - Email: boyd.jc.github@gmail.com",
+				"User-Agent": "OSRS GE Market Making/Liquidity Provider script - Email: boyd.jc.github@gmail.com",
 				"From": "boyd.jc.github@gmail.com"
 			}
 		)
