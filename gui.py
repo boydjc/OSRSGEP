@@ -1,26 +1,47 @@
 import sys
-from PySide6.QtGui import QColor, QPalette
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, \
+                            QMainWindow, \
+                            QWidget, \
+                            QVBoxLayout, \
+                            QHBoxLayout, \
+                            QLabel, \
+                            QComboBox            
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("OSRSGEP")
 
-        widget = Color("red")
+        layout = QVBoxLayout()
+
+        self.infoBar = InfoBar()
+
+        layout.addWidget(self.infoBar)
+
+        widget = QWidget()
+        widget.setLayout(layout)
         self.setCentralWidget(widget)
 
-# test widget
-class Color(QWidget):
-    def __init__(self, color):
-        super().__init__()
-        # tell widget to automatically fill the background with color
-        self.setAutoFillBackground(True)
 
-        # getting the current palette (the global desktop palette by default)
-        palette = self.palette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(color))
-        self.setPalette(palette)
+class InfoBar(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        layout = QHBoxLayout()
+
+        self.gpLabel = QLabel("Total GP: 2,203,202")
+        self.viewSelect = QComboBox()
+        self.viewSelect.addItems(["Scanner", "Search"])
+
+        layout.addWidget(self.gpLabel)
+        layout.addStretch()
+        layout.addWidget(self.viewSelect)
+
+        self.setLayout(layout)
+
+    def setGpLabel(self, text):
+        self.gpLabel.setText(text)
 
 
 
