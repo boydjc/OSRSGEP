@@ -10,8 +10,8 @@ from PySide6.QtWidgets import QApplication, \
                             QComboBox, \
                             QStackedLayout
 
-from scanner import ScannerView
-from widgets import LineSep
+from .scanner import ScannerView
+from .widgets import LineSep
 
 class MainWindow(QMainWindow):
     def __init__(self):
