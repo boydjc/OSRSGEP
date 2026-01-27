@@ -1,6 +1,7 @@
 from api import Geapi
 import time
 from datetime import datetime
+import pandas as pd
 
 class GeController:
 
@@ -93,7 +94,7 @@ class GeController:
 
         # Sort by after-tax percent edge, then recency
         rows.sort(key=lambda r: (r["item_limit"], r["netSpreadPct"], r["vol (5m)"], r["lastTradeTime"],), reverse=True)
-        return rows[:limit]
+        return pd.DataFrame(rows[:limit])
     
     def searchMapping(self, itemId):
 
@@ -129,9 +130,7 @@ if __name__ == "__main__":
     geController = GeController()
 
     widestSpreads = geController.findWidestSpreads()
-    for item in widestSpreads:
-        print(item)
-        print('---------------')
+    print(widestSpreads)
 
     #latestSnapshotItem = geController.searchLatestSnapshot(30771)
 
