@@ -8,7 +8,7 @@ class GeController:
     def __init__(self):
         self.geapi = Geapi()
 
-    def findWidestSpreads(self, limit=10):
+    def findWidestSpreads(self, limit=50):
 
         latestSnapshot = self.geapi.getLatestSnapshot()
         data = latestSnapshot["data"]
