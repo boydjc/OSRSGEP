@@ -121,17 +121,36 @@ class GeController:
         oneHourAveSnapshot = self.geapi.getOneHourAveSnapshot()
 
         return oneHourAveSnapshot["data"].get(str(itemId))
+    
+    def searchItem(self, itemId):
 
+        latestSnapshot = self.geapi.getLatestSnapshot()
+        fiveMinSnapshot = self.geapi.getFiveMinAveSnapshot()
+        oneHourAveSnapshot = self.geapi.getOneHourAveSnapshot()
+        sixHourAveSnapshot = self.geapi.getSixHourAveSnapshot()
+        oneDayAveSnapshot = self.geapi.getOneDayAveSnapshot()
 
+        return [latestSnapshot["data"].get(str(itemId)), {
+            "fiveMinAve": fiveMinSnapshot["data"].get(str(itemId)),
+            "oneHourAve": oneHourAveSnapshot["data"].get(str(itemId)),
+            "sixHourAve": sixHourAveSnapshot["data"].get(str(itemId)),
+            "oneDayAve": oneDayAveSnapshot["data"].get(str(itemId))
+        }]
+    
+    def getLatest(self, itemId):
+        return [self.geapi.latest(itemId)["data"].get(str(itemId)), self.searchFiveMinuteAveSnapshot(itemId), self.searchMapping(itemId)]
 
+        
 if __name__ == "__main__":
     geController = GeController()
 
-    widestSpreads = geController.findWidestSpreads()
-    print(widestSpreads)
+    #widestSpreads = geController.findWidestSpreads()
 
-    #latestSnapshotItem = geController.searchLatestSnapshot(30771)
+    #itemData = geController.searchItem(391)
 
-    #print(latestSnapshotItem)
+    latestdata = geController.getLatest(391)
+
+    for item in latestdata:
+        print(item)
 
     
