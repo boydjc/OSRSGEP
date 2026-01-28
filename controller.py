@@ -69,7 +69,7 @@ class GeController:
 
                 fiveMinVol = None
 
-                # Filter that the 5 minute volume is at least 50% of the limit
+                # Filter that the 5 minute volume is at least 99% of the limit
                 if fiveMinLowVol and fiveMinHighVol:
                     fiveMinVol = fiveMinLowVol + fiveMinHighVol
 
@@ -79,7 +79,7 @@ class GeController:
                         
                         fiveMinVolPct = fiveMinVol / item_limit
 
-                        if fiveMinVolPct >= .5:
+                        if fiveMinVolPct >= .99:
                             rows.append({
                                 "item_id": int(itemId),
                                 "item_name": itemDetails.get("name"),
@@ -93,7 +93,7 @@ class GeController:
                             })
 
         # Sort by after-tax percent edge, then recency
-        rows.sort(key=lambda r: (r["item_limit"], r["netSpreadPct"], r["vol (5m)"], r["lastTradeTime"],), reverse=True)
+        rows.sort(key=lambda r: (r["netSpreadPct"], r["lastTradeTime"]), reverse=True)
         return pd.DataFrame(rows[:limit])
     
     def searchMapping(self, itemId):
