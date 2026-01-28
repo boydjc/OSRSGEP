@@ -13,8 +13,7 @@ from PySide6.QtWidgets import (
                         QTableView,
                         QSizePolicy,
                         QHeaderView,
-                        QMessageBox,
-                        
+                        QMessageBox
                     )
 
 from PySide6.QtCore import (
@@ -157,6 +156,12 @@ class SearchItemTitle(QWidget):
         layout.addStretch()
 
         self.setLayout(layout)
+
+    def setItemTitle(self, text: str):
+        self.itemTitle.setText(text)
+
+    def setItemSubtitle(self, text: str):
+        self.itemSubtitle.setText(text)
 
 
 class SearchItemDesc(QWidget):
