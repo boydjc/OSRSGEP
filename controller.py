@@ -8,7 +8,7 @@ class GeController:
     def __init__(self):
         self.geapi = Geapi()
 
-    def findWidestSpreads(self, limit=50):
+    def findWidestSpreads(self):
 
         latestSnapshot = self.geapi.getLatestSnapshot()
         data = latestSnapshot["data"]
@@ -69,7 +69,7 @@ class GeController:
 
                 fiveMinVol = None
 
-                # Filter that the 5 minute volume is at least 50% of the limit
+                # Filter that the 5 minute volume is at least 100% of the limit
                 if fiveMinLowVol and fiveMinHighVol:
                     fiveMinVol = fiveMinLowVol + fiveMinHighVol
 
@@ -79,7 +79,7 @@ class GeController:
                         
                         fiveMinVolPct = fiveMinVol / item_limit
 
-                        if fiveMinVolPct >= .5:
+                        if fiveMinVolPct >= 1:
                             rows.append({
                                 "item_id": int(itemId),
                                 "item_name": itemDetails.get("name"),
@@ -92,9 +92,7 @@ class GeController:
                                 "lastTradeTime": lastTradeTime
                             })
 
-        # Sort by after-tax percent edge, then recency
-        rows.sort(key=lambda r: (r["item_limit"], r["netSpreadPct"], r["vol (5m)"], r["lastTradeTime"],), reverse=True)
-        return pd.DataFrame(rows[:limit])
+        return pd.DataFrame(rows)
     
     def searchMapping(self, itemId):
 

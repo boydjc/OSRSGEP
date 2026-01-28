@@ -1,9 +1,10 @@
 import pandas as pd
+import numpy as np
 import traceback
 from datetime import datetime
 
 from PySide6.QtCore import (
-    QAbstractTableModel, Qt, QObject, QThread, Signal, Slot
+    QAbstractTableModel, Qt, QObject, QThread, Signal, Slot, QSortFilterProxyModel
 )
 from PySide6.QtWidgets import (
     QPushButton, QTableView, QHeaderView, QSizePolicy,
@@ -26,17 +27,22 @@ class ScannerView(QWidget):
         layout.addWidget(self.controlBar, 0)
 
         self.scannerTable = QTableView()
-        self.scannerTable.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Expanding
-        )
+        self.scannerTable.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
+        # Source model
         self.tableModel = ScannerViewTableModel(pd.DataFrame())
-        self.scannerTable.setModel(self.tableModel)
+
+        # Proxy for sorting (portable, correct numeric sorting)
+        self.proxy = QSortFilterProxyModel(self)
+        self.proxy.setSourceModel(self.tableModel)
+        self.proxy.setSortRole(Qt.ItemDataRole.UserRole)
+        self.proxy.setDynamicSortFilter(True)
+
+        self.scannerTable.setModel(self.proxy)
+        self.scannerTable.setSortingEnabled(True)
 
         self.scannerTable.verticalHeader().setVisible(False)
         self.scannerTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.scannerTable.setSortingEnabled(True)
 
         layout.addWidget(LineSep())
         layout.addWidget(self.scannerTable, 1)
@@ -59,15 +65,13 @@ class ScannerView(QWidget):
 class ScannerViewControlBar(QWidget):
     def __init__(self):
         super().__init__()
-
         layout = QHBoxLayout()
 
         self.lastScanTime = QLabel("Last Scan Time: --:--:--")
         layout.addWidget(self.lastScanTime)
-
         layout.addStretch()
 
-        self.scanPushButton = QPushButton(text="Scan", parent=self)
+        self.scanPushButton = QPushButton("Scan", self)
         layout.addWidget(self.scanPushButton)
 
         self.setLayout(layout)
@@ -80,6 +84,7 @@ class ScannerViewControlBar(QWidget):
         self.scanPushButton.setEnabled(not busy)
         self.scanPushButton.setText("Scanning..." if busy else "Scan")
 
+
 class ScannerViewTableModel(QAbstractTableModel):
     def __init__(self, df: pd.DataFrame):
         super().__init__()
@@ -91,31 +96,43 @@ class ScannerViewTableModel(QAbstractTableModel):
         self._data = df if df is not None else pd.DataFrame()
         self.endResetModel()
 
-    def data(self, index, role):
-        if not index.isValid():
-            return None
-        if role == Qt.ItemDataRole.DisplayRole:
-            value = self._data.iloc[index.row(), index.column()]
-            return "" if value is None else str(value)
-        return None
-
     def rowCount(self, parent=None):
         return 0 if self._data is None else self._data.shape[0]
 
     def columnCount(self, parent=None):
         return 0 if self._data is None else self._data.shape[1]
 
+    def data(self, index, role):
+        if not index.isValid() or self._data is None or self._data.empty:
+            return None
+
+        value = self._data.iat[index.row(), index.column()]
+
+        # Raw values for sorting (UserRole exists in PySide6)
+        if role == Qt.ItemDataRole.UserRole:
+            if pd.isna(value):
+                return None
+            if isinstance(value, (np.generic,)):
+                return value.item()
+            return value
+
+        # Pretty display
+        if role == Qt.ItemDataRole.DisplayRole:
+            if pd.isna(value):
+                return ""
+            return str(value)
+
+        return None
+
     def headerData(self, section, orientation, role):
-        if role == Qt.ItemDataRole.DisplayRole and self._data is not None:
-            if orientation == Qt.Orientation.Horizontal and section < len(self._data.columns):
+        if role == Qt.ItemDataRole.DisplayRole and self._data is not None and not self._data.empty:
+            if orientation == Qt.Orientation.Horizontal:
                 return str(self._data.columns[section])
-            if orientation == Qt.Orientation.Vertical and section < len(self._data.index):
-                return str(self._data.index[section])
         return None
 
 
 class ScannerController(QObject):
-    resultsReady = Signal(object)     # pd.DataFrame
+    resultsReady = Signal(object)  # pd.DataFrame
     error = Signal(str)
     busyChanged = Signal(bool)
     lastScanTimeChanged = Signal(str)
@@ -137,7 +154,7 @@ class ScannerController(QObject):
             return
         self._setBusy(True)
 
-        self._thread = QThread()
+        self._thread = QThread(self)
         self._worker = ScanWorker()
         self._worker.moveToThread(self._thread)
 
@@ -148,12 +165,12 @@ class ScannerController(QObject):
         self._worker.finished.connect(self._thread.quit)
         self._worker.finished.connect(self._worker.deleteLater)
         self._thread.finished.connect(self._thread.deleteLater)
-        self._thread.finished.connect(self._onThreadFinished)
+        self._thread.finished.connect(self._onFinished)
 
         self._thread.start()
 
     @Slot()
-    def _onThreadFinished(self):
+    def _onFinished(self):
         self._worker = None
         self._thread = None
         self._setBusy(False)
