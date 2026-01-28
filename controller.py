@@ -150,7 +150,5 @@ if __name__ == "__main__":
 
     latestdata = geController.getLatest(391)
 
-    for item in latestdata:
-        print(item)
-
+    print(latestdata)
     
