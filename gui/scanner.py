@@ -155,7 +155,7 @@ class ScannerController(QObject):
         self._setBusy(True)
 
         self._thread = QThread(self)
-        self._worker = ScanWorker(limit=10)
+        self._worker = ScanWorker()
         self._worker.moveToThread(self._thread)
 
         self._thread.started.connect(self._worker.run)
@@ -186,15 +186,14 @@ class ScanWorker(QObject):
     result = Signal(object)   # pd.DataFrame
     error = Signal(str)
 
-    def __init__(self, limit=10):
+    def __init__(self):
         super().__init__()
         self._controller = GeController()
-        self._limit = limit
 
     @Slot()
     def run(self):
         try:
-            df = self._controller.findWidestSpreads(limit=self._limit)
+            df = self._controller.findWidestSpreads()
             self.result.emit(df)
         except Exception:
             self.error.emit(traceback.format_exc())
