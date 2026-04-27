@@ -1,16 +1,17 @@
 import sys
 
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QApplication, \
-                            QMainWindow, \
-                            QWidget, \
-                            QVBoxLayout, \
-                            QHBoxLayout, \
-                            QLabel, \
-                            QComboBox, \
-                            QStackedLayout
+from PySide6.QtWidgets import (QApplication, 
+                            QMainWindow, 
+                            QWidget, 
+                            QVBoxLayout, 
+                            QHBoxLayout, 
+                            QLabel, 
+                            QComboBox, 
+                            QStackedLayout )
 
 from .scanner import ScannerView
+from .search import SearchView
 from .widgets import LineSep
 
 class MainWindow(QMainWindow):
@@ -79,17 +80,6 @@ class StackedDisplay(QWidget):
             self.stackedLayout.setCurrentIndex(0)
         elif viewStr == "Search":
             self.stackedLayout.setCurrentIndex(1)
-        
-
-class SearchView(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        layout = QVBoxLayout()
-
-        layout.addWidget(QLabel("Search View"))
-        
-        self.setLayout(layout)
 
 
 if __name__ == "__main__":

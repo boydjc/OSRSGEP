@@ -66,7 +66,7 @@ class Geapi:
 
 			self.timeSinceLastRequest = int(time.time())
 
-			return res
+			return res.json()
 
 	def saveAllItemsLatest(self):
 		reqUrl = self.endpoint + "/latest"
@@ -322,7 +322,7 @@ class Geapi:
 
 			if is_stale:
 				# Refresh once
-				self.oneDayAveSnapshot()
+				self.saveOneDayAve()
 
 				# Reload once
 				with open(self.oneDayAveSnapshotPath, "r", encoding="utf-8") as f:
